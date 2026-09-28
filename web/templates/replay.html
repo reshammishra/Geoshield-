@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Disaster Replay – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem;">
+  <h1 style="font-size:1.4rem; font-weight:800;">⏪ Disaster Replay Engine</h1>
+  <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:2px;">
+    Temporal visual simulation of environmental disaster progression across real satellite timeframes
+  </p>
+</div>
+
+<!-- Replay Interactive Control Center -->
+<div class="replay-panel" style="margin-bottom:1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Observation Date</span>
+      <h2 id="replay-current-date" style="font-size:1.6rem; font-weight:800; font-family:var(--font-mono); color:var(--text-highlight);">
+        Loading...
+      </h2>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <select id="replay-year" class="form-control" style="width:110px;">
+        <option value="2024" selected>2024 Feed</option>
+        <option value="2023">2023 Feed</option>
+        <option value="2022">2022 Feed</option>
+      </select>
+
+      <button id="btn-play-pause" class="btn btn-primary" style="padding:0.6rem 1.25rem;">
+        ▶ Play Replay
+      </button>
+    </div>
+  </div>
+
+  <!-- Timeline Scrubber -->
+  <div class="timeline-slider-container">
+    <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">DAY 1</span>
+    <input type="range" id="timeline-slider" class="timeline-slider" min="0" max="100" value="0" />
+    <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">END</span>
+  </div>
+</div>
+
+<!-- Daily Observation Snapshot Frame -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-header"><span class="kpi-title">Daily Detections</span><span>📡</span></div>
+    <div class="kpi-value" id="frame-total">0</div>
+    <div class="kpi-subtext">VIIRS JPSS-1 points</div>
+  </div>
+  <div class="kpi-card kpi-fire">
+    <div class="kpi-header"><span class="kpi-title">Active Fires</span><span>🔥</span></div>
+    <div class="kpi-value" id="frame-fire" style="color:var(--color-fire);">0</div>
+    <div class="kpi-subtext">Thermal spikes</div>
+  </div>
+  <div class="kpi-card kpi-flood">
+    <div class="kpi-header"><span class="kpi-title">Flood Proxies</span><span>🌊</span></div>
+    <div class="kpi-value" id="frame-flood" style="color:var(--color-flood);">0</div>
+    <div class="kpi-subtext">Moisture anomalies</div>
+  </div>
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-header"><span class="kpi-title">Average Radiative Power</span><span>⚡</span></div>
+    <div class="kpi-value" id="frame-avg-frp" style="color:var(--color-warning);">0 MW</div>
+    <div class="kpi-subtext">Energy output</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-header"><span class="kpi-title">Escalated Events</span><span>🔴</span></div>
+    <div class="kpi-value" id="frame-high-sev">0</div>
+    <div class="kpi-subtext">High severity flag</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/replay.js') }}"></script>
+{% endblock %}

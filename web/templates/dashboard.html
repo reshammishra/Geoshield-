@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Operational Dashboard – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<!-- ── Command Hero Banner ────────────────────────────────────────────────── -->
+<div class="hero-command">
+  <div>
+    <h1>🛡️ GEOSHIELD <span>INTELLIGENCE</span></h1>
+    <p>Satellite-to-Action Disaster Intelligence Platform · India Operations</p>
+  </div>
+  <div class="hero-stats-strip">
+    <div class="stat-pill">
+      <span class="label">Coverage</span>
+      <span class="value" id="strip-cities">31</span>
+      <span style="font-size:0.6rem; color:var(--text-muted);">Indian Sectors</span>
+    </div>
+    <div class="stat-pill">
+      <span class="label">Date Coverage</span>
+      <span class="value" id="strip-date-range">2022 → 2024</span>
+      <span style="font-size:0.6rem; color:var(--text-muted);">NASA VIIRS JPSS-1</span>
+    </div>
+    <div class="stat-pill">
+      <span class="label">Peak FRP</span>
+      <span class="value" id="strip-max-frp" style="color:var(--color-warning);">-- MW</span>
+      <span style="font-size:0.6rem; color:var(--text-muted);">Radiative Power</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Filter Bar ──────────────────────────────────────────────────────────── -->
+<div style="background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:0.75rem 1rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+  <form id="dashboard-filter-form" style="display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap;">
+    <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem;">
+      <span style="font-weight:700; color:var(--text-muted); font-size:0.72rem; text-transform:uppercase;">Temporal:</span>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" name="year" value="2022" checked /> 2022</label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" name="year" value="2023" checked /> 2023</label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox" name="year" value="2024" checked /> 2024</label>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem;">
+      <span style="font-weight:700; color:var(--text-muted); font-size:0.72rem; text-transform:uppercase;">Class:</span>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:#FCA5A5;"><input type="checkbox" name="event_type" value="Fire" checked /> Fire</label>
+      <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:#7DD3FC;"><input type="checkbox" name="event_type" value="Flood" checked /> Flood</label>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem;">
+      <span style="font-weight:700; color:var(--text-muted); font-size:0.72rem; text-transform:uppercase;">Min Confidence:</span>
+      <input type="range" id="conf-slider" min="30" max="95" value="50" step="5" style="width:90px;" />
+    </div>
+  </form>
+
+  <div style="display:flex; gap:6px;">
+    <button class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;" onclick="window.location.reload()">🔄 Refresh Feed</button>
+  </div>
+</div>
+
+<!-- ── KPI Overview Grid ──────────────────────────────────────────────────── -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-header">
+      <span class="kpi-title">Total Detections</span>
+      <span class="kpi-icon">🛰️</span>
+    </div>
+    <div class="kpi-value" id="kpi-total-detections">--</div>
+    <div class="kpi-subtext">Verified satellite observations</div>
+  </div>
+
+  <div class="kpi-card kpi-fire">
+    <div class="kpi-header">
+      <span class="kpi-title">Active Fire Events</span>
+      <span class="kpi-icon">🔥</span>
+    </div>
+    <div class="kpi-value" id="kpi-fire-count" style="color:var(--color-fire);">--</div>
+    <div class="kpi-subtext">High thermal anomalies (FRP &gt; 50)</div>
+  </div>
+
+  <div class="kpi-card kpi-flood">
+    <div class="kpi-header">
+      <span class="kpi-title">Flood Indications</span>
+      <span class="kpi-icon">🌊</span>
+    </div>
+    <div class="kpi-value" id="kpi-flood-count" style="color:var(--color-flood);">--</div>
+    <div class="kpi-subtext">Low thermal &amp; moisture proxies</div>
+  </div>
+
+  <div class="kpi-card kpi-warning">
+    <div class="kpi-header">
+      <span class="kpi-title">High-Severity Alerts</span>
+      <span class="kpi-icon">🔴</span>
+    </div>
+    <div class="kpi-value" id="kpi-high-severity" style="color:var(--color-warning);">--</div>
+    <div class="kpi-subtext">Confidence &gt; 80% or FRP &gt; 100MW</div>
+  </div>
+
+  <div class="kpi-card kpi-success">
+    <div class="kpi-header">
+      <span class="kpi-title">Estimated Impact</span>
+      <span class="kpi-icon">📐</span>
+    </div>
+    <div class="kpi-value" id="kpi-area-affected" style="color:var(--color-normal);">--</div>
+    <div class="kpi-subtext">Total footprint across India</div>
+  </div>
+</div>
+
+<!-- ── Geospatial Command & What Changed Grid ──────────────────────────────── -->
+<div class="ops-grid">
+  <!-- Interactive Geospatial Map Card -->
+  <div class="ops-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>🗺️</span> India Disaster Command Map
+        <span style="font-size:0.7rem; color:var(--text-muted); font-weight:500;">(Click marker to open Evidence Drawer)</span>
+      </div>
+      <div class="card-actions">
+        <button id="layer-clusters" class="btn btn-secondary map-layer-btn active" style="font-size:0.75rem; padding:4px 8px;">Event Clusters</button>
+        <button id="layer-heatmap" class="btn btn-secondary map-layer-btn" style="font-size:0.75rem; padding:4px 8px;">Heatmap</button>
+        <button id="layer-sat" class="btn btn-secondary map-layer-btn" style="font-size:0.75rem; padding:4px 8px;">Satellite Tiles</button>
+      </div>
+    </div>
+    <div id="map-viewport"></div>
+  </div>
+
+  <!-- What Changed In Last 24 Hours Card -->
+  <div class="ops-card">
+    <div class="card-header">
+      <div class="card-title">
+        <span>⚡</span> What Changed?
+      </div>
+      <span style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:600;">24h Shift</span>
+    </div>
+    <div class="card-body" id="what-changed-card">
+      <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+        Evaluating recent satellite temporal deltas...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Priority Incident Queue ────────────────────────────────────────────── -->
+<div class="ops-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🚨</span> Incident Priority Queue
+      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:400;">(Ranked by Explainable Dynamic Risk Score)</span>
+    </div>
+    <a href="/incidents" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;">View All Incidents →</a>
+  </div>
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Location / Region</th>
+          <th>Type</th>
+          <th>Risk Score</th>
+          <th>Max FRP</th>
+          <th>Latest Detection</th>
+        </tr>
+      </thead>
+      <tbody id="priority-queue-tbody">
+        <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Streaming priority incidents...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

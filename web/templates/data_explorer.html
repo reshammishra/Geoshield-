@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Raw Data Explorer – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<div class="ops-card">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🔎</span> Satellite Observations Explorer (NASA VIIRS JPSS-1)
+      <span id="records-total-badge" style="font-size:0.75rem; color:var(--text-highlight); font-weight:700; margin-left:8px;">1,464,515 Verified Records</span>
+    </div>
+    <div class="card-actions">
+      <a href="/api/data/export" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;">⬇️ Download Full Filtered CSV</a>
+    </div>
+  </div>
+
+  <div style="padding:1rem 1.25rem; border-bottom:1px solid var(--border-subtle); background:rgba(16, 24, 42, 0.4);">
+    <form id="records-filter-form" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div>
+        <label class="form-label">Year</label>
+        <select id="rec-year" class="form-control" style="width:100px; padding:4px 8px; font-size:0.8rem;">
+          <option value="">All</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Event</label>
+        <select id="rec-type" class="form-control" style="width:110px; padding:4px 8px; font-size:0.8rem;">
+          <option value="">All</option>
+          <option value="Fire">Fire</option>
+          <option value="Flood">Flood</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Sort Column</label>
+        <select id="rec-sort" class="form-control" style="width:120px; padding:4px 8px; font-size:0.8rem;">
+          <option value="frp">FRP (Intensity)</option>
+          <option value="acq_date">Acquisition Date</option>
+          <option value="confidence">Confidence</option>
+          <option value="brightness">Brightness</option>
+        </select>
+      </div>
+
+      <div style="align-self:flex-end;">
+        <button type="submit" class="btn btn-primary" style="padding:5px 14px; font-size:0.8rem;">Filter Records</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Acq Date</th>
+          <th>City Sector</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Brightness</th>
+          <th>FRP</th>
+          <th>Confidence</th>
+          <th>Class</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody id="records-tbody">
+        <tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);">Streaming satellite records...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="records-pagination" style="padding:1rem 1.25rem; border-top:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let recPage = 1;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadRecords(1);
+
+  document.getElementById('records-filter-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    loadRecords(1);
+  });
+});
+
+async function loadRecords(page = 1) {
+  recPage = page;
+  const tbody = document.getElementById('records-tbody');
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading page ${page}...</td></tr>`;
+
+  try {
+    const params = new URLSearchParams();
+    params.append('page', page);
+    params.append('per_page', 50);
+
+    const year = document.getElementById('rec-year').value;
+    if (year) params.append('years', year);
+
+    const type = document.getElementById('rec-type').value;
+    if (type) params.append('event_types', type);
+
+    const sort = document.getElementById('rec-sort').value;
+    if (sort) params.append('sort', sort);
+
+    const res = await fetch(`/api/data/records?${params.toString()}`);
+    const data = await res.json();
+
+    tbody.innerHTML = (data.records || []).map(r => `
+      <tr>
+        <td style="font-family:var(--font-mono);">${r.acq_date}</td>
+        <td><strong>${r.city || 'Unknown'}</strong></td>
+        <td>${r.latitude?.toFixed(3)}</td>
+        <td>${r.longitude?.toFixed(3)}</td>
+        <td>${r.brightness?.toFixed(1)} K</td>
+        <td style="color:var(--color-warning); font-weight:700;">${r.frp?.toFixed(1)} MW</td>
+        <td>${r.confidence?.toFixed(0)}%</td>
+        <td><span class="badge ${r.label === 1 ? 'badge-fire' : 'badge-flood'}">${r.event_type}</span></td>
+        <td><span class="badge ${r.severity === 'High' ? 'badge-high' : r.severity === 'Medium' ? 'badge-medium' : 'badge-low'}">${r.severity || 'Low'}</span></td>
+      </tr>
+    `).join('');
+
+    document.getElementById('records-pagination').innerHTML = `
+      <span style="font-size:0.8rem; color:var(--text-muted);">Showing page ${data.page} of ${data.pages} (${data.total.toLocaleString()} records)</span>
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-secondary" ${data.page <= 1 ? 'disabled' : ''} onclick="loadRecords(${data.page - 1})">Prev</button>
+        <button class="btn btn-secondary" ${data.page >= data.pages ? 'disabled' : ''} onclick="loadRecords(${data.page + 1})">Next</button>
+      </div>
+    `;
+  } catch (err) {
+    console.error(err);
+  }
+}
+</script>
+{% endblock %}

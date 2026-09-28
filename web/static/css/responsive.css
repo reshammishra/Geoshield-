@@ -1,0 +1,61 @@
+/* ==============================================================================
+   GeoShield – Responsive Media Queries
+   Breakpoints: Mobile (< 768px), Tablet (< 1024px), Laptop (< 1280px)
+============================================================================== */
+
+@media (max-width: 1024px) {
+  .ops-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .incident-drawer {
+    width: 100vw;
+    right: -100vw;
+  }
+
+  .topbar-left {
+    max-width: 250px;
+  }
+
+  .hero-command {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-stats-strip {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  #map-viewport {
+    height: 380px;
+  }
+}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Incidents Queue – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<div class="ops-card" style="margin-bottom:1.5rem;">
+  <div class="card-header">
+    <div class="card-title">
+      <span>🔥</span> Fused Disaster Incidents Queue
+      <span id="total-incident-count" style="font-size:0.75rem; color:var(--text-highlight); font-weight:700; margin-left:8px;">-- Incidents</span>
+    </div>
+    <div class="card-actions">
+      <a href="/api/data/export" class="btn btn-secondary" style="font-size:0.75rem; padding:4px 10px;">⬇️ Export CSV</a>
+    </div>
+  </div>
+
+  <!-- Filter Strip -->
+  <div style="padding:1rem 1.25rem; border-bottom:1px solid var(--border-subtle); background:rgba(16, 24, 42, 0.4);">
+    <form id="incidents-filter-form" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap;">
+      <div>
+        <label class="form-label">Temporal Year</label>
+        <select id="filter-year" class="form-control" style="width:110px; padding:4px 8px; font-size:0.8rem;">
+          <option value="">All Years</option>
+          <option value="2024">2024</option>
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Event Type</label>
+        <select id="filter-type" class="form-control" style="width:120px; padding:4px 8px; font-size:0.8rem;">
+          <option value="all">All Types</option>
+          <option value="Fire">Fire</option>
+          <option value="Flood">Flood</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Severity</label>
+        <select id="filter-severity" class="form-control" style="width:120px; padding:4px 8px; font-size:0.8rem;">
+          <option value="all">All Levels</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="form-label">Confidence</label>
+        <input type="number" id="filter-confidence" class="form-control" placeholder="50%" min="30" max="99" style="width:80px; padding:4px 8px; font-size:0.8rem;" />
+      </div>
+
+      <div style="align-self:flex-end;">
+        <button type="submit" class="btn btn-primary" style="padding:5px 14px; font-size:0.8rem;">Apply Filter</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Incidents Table -->
+  <div class="table-responsive">
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Incident ID</th>
+          <th>Location / Coordinates</th>
+          <th>Type</th>
+          <th>Risk Score</th>
+          <th>Detections</th>
+          <th>Max FRP</th>
+          <th>Duration</th>
+          <th>Latest Detection</th>
+        </tr>
+      </thead>
+      <tbody id="incidents-tbody">
+        <tr><td colspan="8" style="text-align:center; padding:2rem; color:var(--text-muted);">Loading incidents from event fusion engine...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="pagination-controls" style="padding:1rem 1.25rem; border-top:1px solid var(--border-subtle); background:rgba(16, 24, 42, 0.4);"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/incidents.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.*
+
+# Streamlit / local runtime
+.streamlit/
+
+# Generated outputs
+outputs/
+*.log
+
+# Large datasets / model artifacts
+data/
+models/
+*.pt
+*.csv
+*.parquet
+*.h5
+*.pkl
+*.joblib
+
+# OS/editor
+.DS_Store
+Thumbs.db

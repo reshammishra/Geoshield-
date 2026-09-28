@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ code }} – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<div style="text-align:center; padding:5rem 1rem;">
+  <div style="font-size:3.5rem; margin-bottom:1rem;">⚠️</div>
+  <h1 style="font-size:2rem; font-weight:800; color:var(--text-primary); margin-bottom:0.5rem;">
+    Error {{ code }}
+  </h1>
+  <p style="font-size:1rem; color:var(--text-secondary); max-width:500px; margin:0 auto 1.5rem;">
+    {{ message or 'An unexpected condition was encountered during satellite processing.' }}
+  </p>
+  <a href="/dashboard" class="btn btn-primary">Return to Operations Dashboard</a>
+</div>
+{% endblock %}

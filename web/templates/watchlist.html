@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Sector Watchlist – GeoShield Intelligence{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h1 style="font-size:1.4rem; font-weight:800;">⭐ Sector &amp; City Watchlist</h1>
+    <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:2px;">
+      Personalized monitoring queue for state disaster response teams and municipal authorities
+    </p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('add-watchlist-modal').style.display='flex'">
+    ➕ Add Watchlist Sector
+  </button>
+</div>
+
+<!-- Watchlist Cards Grid -->
+<div id="watchlist-grid" class="kpi-grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+  <div style="grid-column: 1/-1; text-align:center; padding:3rem; color:var(--text-muted);">
+    Loading your saved watchlist sectors...
+  </div>
+</div>
+
+<!-- Add Location Modal -->
+<div id="add-watchlist-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--bg-surface); border:1px solid var(--border-subtle); border-top:4px solid var(--color-flood); border-radius:var(--radius-md); padding:1.5rem; width:100%; max-width:400px; box-shadow:var(--shadow-card);">
+    <h3 style="font-size:1.1rem; font-weight:800; margin-bottom:1rem;">Add Location to Watchlist</h3>
+    <form id="watchlist-form">
+      <div class="form-group">
+        <label class="form-label">City or Region Name</label>
+        <select id="watch-location" class="form-control">
+          <option value="Indore">Indore (Madhya Pradesh)</option>
+          <option value="Delhi / NCR">Delhi / NCR</option>
+          <option value="Mumbai">Mumbai (Maharashtra)</option>
+          <option value="Guwahati">Guwahati (Assam)</option>
+          <option value="Bengaluru">Bengaluru (Karnataka)</option>
+          <option value="Chennai">Chennai (Tamil Nadu)</option>
+          <option value="Kolkata">Kolkata (West Bengal)</option>
+          <option value="Hyderabad">Hyderabad (Telangana)</option>
+          <option value="Jaipur">Jaipur (Rajasthan)</option>
+          <option value="Amritsar">Amritsar (Punjab)</option>
+          <option value="Bhopal">Bhopal (Madhya Pradesh)</option>
+          <option value="Raipur">Raipur (Chhattisgarh)</option>
+          <option value="Ranchi">Ranchi (Jharkhand)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Notes / Priority</label>
+        <input type="text" id="watch-notes" class="form-control" placeholder="e.g. Critical crop stubble monitoring" />
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:1.25rem;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('add-watchlist-modal').style.display='none'">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save to Watchlist</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  loadWatchlist();
+
+  document.getElementById('watchlist-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loc = document.getElementById('watch-location').value;
+    const notes = document.getElementById('watch-notes').value;
+
+    try {
+      const res = await fetch('/api/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location_name: loc, notes: notes })
+      });
+      if (res.ok) {
+        window.GeoShield.toast(`Added ${loc} to watchlist`, 'success');
+        document.getElementById('add-watchlist-modal').style.display = 'none';
+        loadWatchlist();
+      }
+    } catch (err) {
+      window.GeoShield.toast('Failed to save watchlist', 'error');
+    }
+  });
+});
+
+async function loadWatchlist() {
+  const container = document.getElementById('watchlist-grid');
+  try {
+    const res = await fetch('/api/watchlist');
+    const data = await res.json();
+
+    if (!data.watchlist || data.watchlist.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align:center; padding:3rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">⭐</div>
+          <h3 style="font-size:1.1rem; color:var(--text-primary); margin-bottom:0.25rem;">No Watchlist Locations Yet</h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Save Indian cities or regions to track their risk scores and active events.</p>
+          <button class="btn btn-primary" onclick="document.getElementById('add-watchlist-modal').style.display='flex'">➕ Add First Sector</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = data.watchlist.map(item => {
+      let riskBadge = 'badge-low';
+      if (item.risk_level === 'CRITICAL') riskBadge = 'badge-critical';
+      else if (item.risk_level === 'HIGH') riskBadge = 'badge-high';
+      else if (item.risk_level === 'MEDIUM') riskBadge = 'badge-medium';
+
+      return `
+        <div class="kpi-card" style="padding:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+            <div>
+              <h3 style="font-size:1.1rem; font-weight:800; color:var(--text-primary);">${item.location_name}</h3>
+              <span style="font-size:0.72rem; color:var(--text-muted);">${item.notes || 'Routine surveillance'}</span>
+            </div>
+            <button onclick="removeWatchlist(${item.id})" class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;">×</button>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <div>
+              <span style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Risk Score</span>
+              <div style="font-size:1.4rem; font-weight:800; font-family:var(--font-mono); color:var(--text-highlight);">
+                ${item.risk_score}<span style="font-size:0.8rem; color:var(--text-muted);">/100</span>
+              </div>
+            </div>
+            <span class="badge ${riskBadge}">${item.risk_level}</span>
+          </div>
+
+          <div style="font-size:0.78rem; color:var(--text-secondary); border-top:1px solid var(--border-light); padding-top:0.75rem; display:flex; justify-content:space-between;">
+            <span>🔥 Fire: <strong>${item.fire_count}</strong></span>
+            <span>🌊 Flood: <strong>${item.flood_count}</strong></span>
+            <span>Max FRP: <strong>${item.max_frp} MW</strong></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function removeWatchlist(id) {
+  if (confirm('Remove location from watchlist?')) {
+    await fetch(`/api/watchlist/${id}`, { method: 'DELETE' });
+    loadWatchlist();
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GeoShield – Satellite Disaster Intelligence{% endblock %}</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+  
+  <!-- Leaflet GIS CDN -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Leaflet Heat plugin -->
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- ── Left Command Sidebar ─────────────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🛡️</div>
+        <div>
+          <div class="brand-title">GEOSHIELD <span>PRO</span></div>
+          <div class="brand-subtitle">Disaster Intelligence</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operations</div>
+        <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+          <i>🏠</i> <span>Overview</span>
+        </a>
+        <a href="/incidents" class="nav-link {% if request.path == '/incidents' %}active{% endif %}">
+          <i>🔥</i> <span>Incidents Queue</span>
+        </a>
+        <a href="/replay" class="nav-link {% if request.path == '/replay' %}active{% endif %}">
+          <i>⏪</i> <span>Disaster Replay</span>
+        </a>
+        <a href="/alerts" class="nav-link {% if request.path == '/alerts' %}active{% endif %}">
+          <i>🚨</i> <span>Alert Center</span>
+        </a>
+        <a href="/watchlist" class="nav-link {% if request.path == '/watchlist' %}active{% endif %}">
+          <i>⭐</i> <span>City Watchlist</span>
+        </a>
+
+        <div class="nav-section-title">Intelligence</div>
+        <a href="/analytics" class="nav-link {% if request.path == '/analytics' %}active{% endif %}">
+          <i>📊</i> <span>Trend Analytics</span>
+        </a>
+        <a href="/assistant" class="nav-link {% if request.path == '/assistant' %}active{% endif %}">
+          <i>🤖</i> <span>AI Assistant</span>
+        </a>
+        <a href="/simulator" class="nav-link {% if request.path == '/simulator' %}active{% endif %}">
+          <i>⚡</i> <span>Alert Simulator</span>
+        </a>
+
+        <div class="nav-section-title">Data & Quality</div>
+        <a href="/data-explorer" class="nav-link {% if request.path == '/data-explorer' %}active{% endif %}">
+          <i>🔎</i> <span>Data Explorer</span>
+        </a>
+        <a href="/data-health" class="nav-link {% if request.path == '/data-health' %}active{% endif %}">
+          <i>🩺</i> <span>Data Health</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-info">
+            <span class="user-name">{{ session.user.username if session.user else 'Operator' }}</span>
+            <span class="user-role">{{ session.user.role if session.user else 'Analyst' }}</span>
+          </div>
+          <a href="/auth/logout" class="btn-logout" title="Sign Out">🚪</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main View Container ─────────────────────────────────────────── -->
+    <div class="main-content">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="btn-mobile-sidebar" class="btn btn-secondary" style="display:none; padding:4px 8px;">☰</button>
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="Search city, sector, or incident ID (e.g. Indore, Fire, 7F2A)..." autocomplete="off" />
+            <div id="search-dropdown" class="search-results-dropdown"></div>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="status-indicator">
+            <div class="pulse-dot"></div>
+            <span>FEED: VIIRS JPSS-1 (ONLINE)</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Body Block -->
+      <main class="page-body">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- ── Slide-in Incident Detail Drawer ─────────────────────────────────── -->
+  <div id="incident-drawer" class="incident-drawer">
+    <div class="drawer-header">
+      <div style="font-weight:700; font-size:0.9rem; text-transform:uppercase; color:var(--text-muted);">
+        Incident Intelligence Briefing
+      </div>
+      <button class="btn btn-secondary" style="padding:2px 8px;" onclick="window.GeoShield.closeIncidentDrawer()">✕</button>
+    </div>
+    <div id="drawer-content" class="drawer-body"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Global Application Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

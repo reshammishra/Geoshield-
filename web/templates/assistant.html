@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}GeoShield Intelligence Assistant – Satellite AI{% endblock %}
+
+{% block content %}
+<style>
+  .chat-box {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 180px);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .chat-history {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .chat-bubble {
+    max-width: 80%;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .bubble-user {
+    align-self: flex-end;
+    background: var(--color-flood);
+    color: #060A12;
+    font-weight: 500;
+    border-bottom-right-radius: 2px;
+  }
+  .bubble-assistant {
+    align-self: flex-start;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    border-bottom-left-radius: 2px;
+  }
+  .suggestion-chips {
+    display: flex;
+    gap: 6px;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-space);
+    border-top: 1px solid var(--border-subtle);
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .suggestion-chip {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .suggestion-chip:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-highlight);
+    border-color: var(--border-focus);
+  }
+  .chat-input-bar {
+    padding: 1rem 1.25rem;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    gap: 0.75rem;
+  }
+</style>
+
+<div class="chat-box">
+  <div style="padding:1rem 1.5rem; border-bottom:1px solid var(--border-subtle); background:var(--bg-card); display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2 style="font-size:1.05rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+        <span>🤖</span> GeoShield Intelligence Assistant
+      </h2>
+      <span style="font-size:0.72rem; color:var(--text-muted);">
+        Strictly answers using real NASA VIIRS JPSS-1 satellite data (1.46M verified Indian observations)
+      </span>
+    </div>
+    <span class="badge badge-normal">AI MODEL: GROUNDED</span>
+  </div>
+
+  <div id="chat-history" class="chat-history">
+    <div class="chat-bubble bubble-assistant">
+      Hello! I am your <strong>GeoShield Intelligence Assistant</strong>. I am directly connected to the NASA VIIRS satellite dataset and the Event Fusion Engine across India.
+      <br/><br/>
+      Ask me questions about disaster trends, city-level fire detections, high-risk incidents, flood anomalies, or event persistence.
+    </div>
+  </div>
+
+  <!-- Quick Suggestion Chips -->
+  <div class="suggestion-chips">
+    <span class="suggestion-chip">Which cities have the highest fire activity?</span>
+    <span class="suggestion-chip">How many flood detections occurred in 2024?</span>
+    <span class="suggestion-chip">Show high-risk disaster incidents</span>
+    <span class="suggestion-chip">Which incidents have the highest persistence?</span>
+    <span class="suggestion-chip">What is the fire situation in Indore?</span>
+  </div>
+
+  <form id="assistant-form" class="chat-input-bar">
+    <input type="text" id="assistant-input" class="form-control" placeholder="Ask a data question (e.g. Which sectors have critical fire risk?)..." required autocomplete="off" />
+    <button type="submit" class="btn btn-primary" style="padding:0.6rem 1.25rem;">Send Query</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/assistant.js') }}"></script>
+{% endblock %}
